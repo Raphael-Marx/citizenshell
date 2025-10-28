@@ -8,7 +8,8 @@ from os import chmod, stat
 
 class AbstractShell(dict):
 
-    def __init__(self, check_xc=False, check_err=False, wait=True, log_level=CRITICAL, **kwargs):
+    # TODO: allow to pass logger or log handlers from outside
+    def __init__(self, check_xc: bool = False, check_err: bool = False, wait: bool = True, log_level: int = CRITICAL, **kwargs):
         dict.__init__(self, kwargs)
         self._local_env = {}
         self._check_xc = check_xc
@@ -23,6 +24,7 @@ class AbstractShell(dict):
         self._spy_write_logger = self._build_logger("%s.spy.write" % str(self), stdout, prefix=">>> ", color="green")
         self.set_log_level(log_level)
         self._available_commands = {}
+        self._os_type = None  # Detected lazily on first use
 
     def id(self):
         return self._id
@@ -30,14 +32,15 @@ class AbstractShell(dict):
     def __repr__(self):
         return "%s(id=%s)" % (self.__class__.__name__, self._id)
 
-    def __call__(self, cmd, check_xc=None, check_err=None, wait=None, cwd=None, **kwargs):
+    # TODO: cwd could be of type Path (check how it works with remote paths)
+    def __call__(self, cmd: str, check_xc: bool | None = None, check_err: bool | None = None, wait: bool | None = None, cwd: str | None = None, timeout: float | None = None, **kwargs):
         check_xc = check_xc if check_xc is not None else self._check_xc
         check_err = check_err if check_err is not None else self._check_err
         wait = wait if wait is not None else self._wait
 
         env = dict(self)
         env.update(kwargs)
-        self._result = self.execute_command(cmd, env, wait, check_err, cwd)
+        self._result = self.execute_command(command=cmd, env=env, wait=wait, check_err=check_err, cwd=cwd, timeout=timeout)
 
         if check_xc and self._result.exit_code() != 0:
             raise ShellError(cmd, "exit code '%s'" % str(self._result.exit_code()))
@@ -46,7 +49,7 @@ class AbstractShell(dict):
     def wait(self):
         self._result.wait()
 
-    def execute_command(self, command, env={}, wait=True, check_err=False, cwd=None):
+    def execute_command(self, command: str, env: dict = {}, wait: bool = True, check_err: bool = False, cwd: str | None = None, timeout: float | None = None):
         raise NotImplementedError("this method must be implemented by the subclass")
 
     @staticmethod
@@ -115,32 +118,58 @@ class AbstractShell(dict):
             result = self.execute_command("od -t x1 -An %s" % path)
         return str(result).replace(" ", "").rstrip("\r\n")
         
+    def _detect_os(self):
+        """
+        Detect the operating system running on the shell.
+        Returns 'linux', 'darwin' (macOS), or 'unknown'.
+        Result is cached after first detection.
+        """
+        if self._os_type is not None:
+            return self._os_type
+        
+        try:
+            result = self.execute_command("uname -s")
+            if result and result.exit_code() == 0:
+                os_name = str(result).strip().lower()
+                if 'linux' in os_name:
+                    self._os_type = 'linux'
+                elif 'darwin' in os_name:
+                    self._os_type = 'darwin'
+                else:
+                    self._os_type = 'unknown'
+            else:
+                self._os_type = 'unknown'
+        except Exception:
+            self._os_type = 'unknown'
+        
+        return self._os_type
+
     def get_permissions(self, path):
-        permissions = self.execute_command("ls -la %s" % path).stdout()[0].split()[0]
-        assert len(permissions) == 10
-        result = 0
-        if (permissions[1] == "r"): 
-            result = result | 0o400
-        if (permissions[2] == "w"):
-            result = result | 0o200
-        if (permissions[3] == "x"):
-            result = result | 0o100
+        """
+        Get file permissions as an octal integer (e.g., 0o755).
+        
+        Returns:
+            int: Permission bits (e.g., 0o755)
+        """
+        os_type = self._detect_os()
+        
+        if os_type == 'linux':
+            stat_cmd = f"stat -c '%%a' '{path}'"
+        elif os_type == 'darwin':
+            stat_cmd = f"stat -f '%%A' '{path}'"
+        else:
+            raise RuntimeError("Unsupported OS type for permission detection")
+        
+        try:
+            # TODO: raise exception if stat command fails (e.g., file does not exist)
+            result = self.execute_command(stat_cmd)
+            if result and result.exit_code() == 0:
+                output = str(result).strip()
+                if output.isdigit():
+                    return int(output, 8)
+        except Exception as e:
+            raise RuntimeError(f"Failed to get permissions for '{path}': {str(e)}")
 
-        if (permissions[4] == "r"): 
-            result = result | 0o040
-        if (permissions[5] == "w"):
-            result = result | 0o020
-        if (permissions[6] == "x"):
-            result = result | 0o010
-
-        if (permissions[7] == "r"): 
-            result = result | 0o004
-        if (permissions[8] == "w"):
-            result = result | 0o002
-        if (permissions[9] == "x"):
-            result = result | 0o001
-        return result
-    
     def set_permissions(self, path, permissions):
         chmod = self.get_command("chmod", mandatory=True)
         self("%s %o '%s'" % (chmod, permissions, path))

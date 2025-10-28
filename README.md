@@ -7,7 +7,7 @@
 
 ## Installation
 
-**unishell** can be installed using `pip install unishell`
+TODO: **unishell** is not yet released
 
 ## Obtaining a shell
 

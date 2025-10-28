@@ -49,35 +49,17 @@ class ParsedUri:
         self.device = parsed_uri.gethost()
 
     def validate(self):
-        if self.scheme in ("telnet", "ssh"):
+        if self.scheme in ("ssh"):
             if not self.hostname or not self.username:
                 raise RuntimeError("scheme '%s' requires 'hostname' and 'username'", self.scheme)
-        if self.scheme in ("adb", "adb+tcp"):
-            if not self.hostname:
-                raise RuntimeError("scheme '%s' requires 'hostname'", self.scheme)
-        if self.scheme in ("adb+usb",):
+        if self.scheme in ("serial",):
             if not self.device:
                 raise RuntimeError("scheme '%s' requires 'device'", self.scheme)
 
     def fill_defaults(self):
-        if self.scheme == "telnet":
-            self.port = self.port or 23
-        elif self.scheme == "ssh":
+        if self.scheme == "ssh":
             self.port = self.port or 22
-        elif self.scheme in ("adb","adb+tcp"):
-            self.port = self.port or 5555
-        elif self.scheme == "adb+usb":
-            self.port = None
-
-        if self.scheme in ("telnet", "adb", "ssh"):
             self.device = None
-        elif self.scheme == "adb+usb":
-            self.hostname = None
-            self.scheme = "adb"
-        elif self.scheme == "adb+tcp":
-            self.device = None
-            self.scheme = "adb"
-            
 
     def get_uri_part(self, argname, from_uri):
         from_kwargs = self.kwargs.get(argname, None)

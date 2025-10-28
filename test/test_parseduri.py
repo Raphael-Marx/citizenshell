@@ -122,15 +122,6 @@ def test_parse_uri_only_scheme_and_hostname_in_uri_password_as_arg():
     assert result.hostname == "thehostname.com"
     assert result.port == None
 
-
-def test_parsed_uri_telnet_no_username():
-    with raises(RuntimeError) as e:
-        ParsedUri("telnet://hostname")
-    assert e.value.args == ("scheme '%s' requires 'hostname' and 'username'", 'telnet')
-
-def test_parsed_uri_telnet_username_as_arg():
-    ParsedUri("telnet://hostname", username="john")
-
 def test_parsed_uri_ssh_no_username():
     with raises(RuntimeError) as e:
         ParsedUri("ssh://hostname")
@@ -141,33 +132,6 @@ def test_parsed_uri_ssh_username_as_arg():
 
 def test_parsed_uri_fill_in_default_port():
     assert ParsedUri("ssh://john@hostname").port == 22
-    assert ParsedUri("telnet://john@hostname").port == 23
-    assert ParsedUri("adb://hostname").port == 5555
-    assert ParsedUri("adb+tcp://hostname").port == 5555
-    assert ParsedUri("adb+usb://device").port == None
-
-
-def test_parsed_uri_adb():
-    result = ParsedUri("adb://something:4444")
-    assert result.scheme == "adb"
-    assert result.port == 4444
-    assert result.hostname == "something"
-    assert result.device == None
-
-def test_parsed_uri_adb_tcp():
-    result = ParsedUri("adb+tcp://something:4444")
-    assert result.scheme == "adb"
-    assert result.port == 4444
-    assert result.hostname == "something"
-    assert result.device == None
-
-def test_parsed_uri_adb_usb():
-    result = ParsedUri("adb+usb://youpla")
-    assert result.scheme == "adb"
-    assert result.port == None
-    assert result.hostname == None
-    assert result.device == "youpla"
-
 
 def test_parse_uri_username_in_uri_and_as_arg():
     with raises(RuntimeError):

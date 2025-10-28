@@ -1,5 +1,5 @@
 from os import environ
-from citizenshell import SecureShell, Shell, LocalShell, ShellError
+from unishell import SecureShell, Shell, LocalShell, ShellError
 from pytest import mark, raises
 try:
     from urllib.parse import quote_plus

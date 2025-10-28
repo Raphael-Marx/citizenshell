@@ -1,11 +1,13 @@
-# citizenshell [![Build Status](https://travis-ci.org/meuter/citizenshell.svg?branch=master)](https://travis-ci.org/meuter/citizenshell)
+# unishell
 
-__citizenshell__ is a python library allowing to execute shell commands either locally or remotely over several protocols (telnet, ssh, serial or adb) using a simple and consistent API. This library is compatible with both python 2 (2.7) and 3 (>=3.4) as well as with [PyPy](https://pypy.org/). For now, it focuses on POSIX platforms like Linux and MacOS, but may be extended to work to Windows based platform in the future. It is distributed under
+> **Note**: This is a maintained fork of the original [citizenshell](https://github.com/meuter/citizenshell) project by Cedric Meuter, which appears to be unmaintained. This fork focuses exclusively on **local**, **SSH**, and **serial** shell protocols. Support for Telnet and ADB has been removed.
+
+**unishell** is a python library allowing to execute shell commands either locally or remotely over SSH or serial connections using a simple and consistent API. This library is compatible with both python 2 (2.7) and 3 (>=3.4) as well as with [PyPy](https://pypy.org/). It focuses on POSIX platforms like Linux and macOS. It is distributed under
 [MIT](https://opensource.org/licenses/MIT) license.
 
 ## Installation
 
-__citizenshell__ can simply installed using `pip install citizenshell`
+**unishell** can be installed using `pip install unishell`
 
 ## Obtaining a shell
 
@@ -14,90 +16,51 @@ First you need a shell. For that you have several options:
 1. use the built-in `LocalShell` for quick access:
 
     ```python
-    from citizenshell import sh
+    from unishell import sh
     ```
 
-2. you can instanciate your own `LocalShell`:
+2. you can instantiate your own `LocalShell`:
 
     ```python
-    from citizenshell import LocalShell
+    from unishell import LocalShell
 
     shell = LocalShell()
     ```
 
-3. you can instanciate the `TelnetShell` for shell over telnet:
+3. you can instantiate the `SecureShell` for shell over SSH:
 
     ```python
-    from citizenshell import TelnetShell
-
-    shell = TelnetShell(hostname="acme.org", username="john",
-                        password="secretpassword")
-    ```
-
-4. you can instanciate the `SecureShell` for shell over SSH:
-
-    ```python
-    from citizenshell import SecureShell
+    from unishell import SecureShell
 
     shell = SecureShell(hostname="acme.org", username="john",
                         password="secretpassword")
     ```
 
-5. you can instanciate the `AdbShell` for shell over ADB:
-
-    - if ADB devices is reachable over TCP/IP:
-
-      ```python
-      from citizenshell import AdbShell
-  
-      shell = AdbShell(hostname="acme.org", port=5555)
-      ```
-
-    - if ADB device is connected via USB:
-
-      ```python
-      from citizenshell import AdbShell
-  
-      shell = AdbShell(device="1c123a09dab45cbf")
-      ```
-
-    - if there is only one ADB device connected via USB:
-
-      ```python
-      from citizenshell import AdbShell
-  
-      shell = AdbShell()
-      ```
-
-6. you can instanciate the `SerialShell` for shell over serial line:
+4. you can instantiate the `SerialShell` for shell over serial line:
 
     ```python
     from serial import EIGHTBITS, PARITY_NONE
-    from citizenshell import SerialShell
+    from unishell import SerialShell
 
     shell = SerialShell(port="/dev/ttyUSB3", username="john",
                         password="secretpassword",
                         baudrate=115200, parity=PARITY_NONE, bytesize=EIGHTBITS)
     ```
 
-7. you can also obtain shell objects by URI using the `Shell` function:
+5. you can also obtain shell objects by URI using the `Shell` function:
 
     ```python
-    from citizenshell import Shell
+    from unishell import Shell
 
     localshell  = Shell()
-    telnetshell = Shell("telnet://john:secretpassword@acme.org:1234")
     secureshell = Shell("ssh://john:secretpassword@acme.org:1234")
-    adbshell    = Shell("adb://myandroiddevice:5555")
-    adbtcpshell = Shell("adb+tcp://myandroiddevice:5555")
-    adbtcpshell = Shell("adb+usb://1c123a09dab45cbf")
-    serialshell = Shell("serial://jogn:secretpassword@/dev/ttyUSB3?baudrate=115200")
+    serialshell = Shell("serial://john:secretpassword@/dev/ttyUSB3?baudrate=115200")
     ```
 
-    you can also mix and match betweens providing arguments in the URI or via kwargs:
+    you can also mix and match between providing arguments in the URI or via kwargs:
 
     ```python
-    telnetshell = Shell("telnet://john@acme.org", password="secretpassword", port=1234)
+    secureshell = Shell("ssh://john@acme.org", password="secretpassword", port=1234)
     serialshell = Shell("serial://john:secretpassword@/dev/ttyUSB3", baudrate=115200)
     ```
 
@@ -216,12 +179,12 @@ assert str(shell("cat remote_file.txt")) == "test"
 
 ## Logs
 
-Every shell object has a set of loggers: stdin, stderr and stdout, as well as for out of band logging message. 
+Every shell object has a set of loggers: stdin, stderr and stdout, as well as for out of band logging message.
 By default they are all set to `logging.CRITICAL` which does not log anything. However, this log level
 can be configured either using the `log_level=` keyword argument in the shell constructor:
 
 ```python
-from citizenshell import LocalShell
+from unishell import LocalShell
 from logging import INFO
 
 shell = LocalShell(log_level=INFO)
@@ -230,13 +193,14 @@ shell = LocalShell(log_level=INFO)
 or by calling the `set_log_level()` method:
 
 ```python
-from citizenshell import sh
+from unishell import sh
 from logging import INFO
 
 sh.set_log_level(INFO)
 ```
 
 When configured with `logging.INFO`:
+
 - all commands are logged on stdout prefixed by a `$` and colored in cyan with `termcolor`
 - all characters produced on stdout are logged to stdout
 - all characters produced on stderr are logged to stderr and colored in red with `termcolor`
@@ -245,7 +209,7 @@ When configured with `logging.INFO`:
 For example:
 
 ```python
-from citizenshell import LocalShell
+from unishell import LocalShell
 from logging import INFO
 
 shell = LocalShell(log_level=INFO)
@@ -267,5 +231,4 @@ $ command -v chmod
 $ chmod 664 '/tmp/to.txt'
 ```
 
-For more even more logs messages, `logging.DEBUG` can be used. 
-
+For more even more logs messages, `logging.DEBUG` can be used.

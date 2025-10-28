@@ -1,5 +1,5 @@
 from pytest import mark, raises, skip
-from citizenshell import ShellError, sh
+from unishell import ShellError, sh
 from itertools import product
 from logging import INFO, ERROR, DEBUG, CRITICAL
 from backports.tempfile import TemporaryDirectory

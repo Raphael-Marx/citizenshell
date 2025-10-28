@@ -1,6 +1,6 @@
 from os import environ
 from pytest import mark, skip
-from citizenshell import SerialShell
+from unishell import SerialShell
 from shelltester import AbstractShellTester
 
 from logging import DEBUG

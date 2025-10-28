@@ -1,7 +1,7 @@
 from os import environ, path
 from time import time
 from pytest import mark, raises, skip
-from citizenshell import SecureShell
+from unishell import SecureShell
 from shelltester import AbstractShellTester
 from backports.tempfile import TemporaryDirectory
 from uuid import uuid4

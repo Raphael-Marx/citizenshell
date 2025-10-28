@@ -2,7 +2,7 @@ from pytest import mark, raises, skip
 from time import time
 from os import environ
 
-from citizenshell import LocalShell, ShellError, sh
+from unishell import LocalShell, ShellError, sh
 from shelltester import AbstractShellTester
 
 class TestLocalShell(AbstractShellTester):

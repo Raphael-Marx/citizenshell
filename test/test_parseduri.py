@@ -1,4 +1,4 @@
-from citizenshell import ParsedUri
+from unishell import ParsedUri
 from pytest import raises
 try:
     from urllib.parse import quote_plus

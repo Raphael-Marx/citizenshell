@@ -9,7 +9,7 @@ def get_version(rel_path):
     else:
         raise RuntimeError("Unable to find version string.")
 
-VERSION=get_version("citizenshell/__init__.py")
+VERSION=get_version("unishell/__init__.py")
 
 REQUIREMENTS = [
     'termcolor>=1.1.0',
@@ -26,19 +26,19 @@ if version_info.major == 2:
     ]
 
 setup(
-    name='citizenshell',
+    name='unishell',
     version=VERSION,
-    packages=['citizenshell'],
-    package_data={ "citizenshell": [ "VERSION" ]},
-    url='https://github.com/meuter/citizenshell',
+    packages=['unishell'],
+    package_data={ "unishell": [ "VERSION" ]},
+    url='https://github.com/Raphael-Marx/unishell',
     license='MIT',
-    author='Cedric Meuter',
-    author_email='cedric.meuter@gmail.com',
-    description='Interact with shell locally or over different connection types (ssh, serial)',
+    author='Raphael Marx',
+    author_email='',
+    description='Interact with shell locally or over SSH and serial connections (fork of citizenshell)',
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    keywords=["shell", "ssh", "serial"],
-    download_url="https://github.com/Raphael-Marx/citizenshell/archive/" + VERSION + ".tar.gz",
+    keywords=["shell", "ssh", "serial", "local", "remote"],
+    download_url="https://github.com/Raphael-Marx/unishell/archive/" + VERSION + ".tar.gz",
     install_requires=[
         'termcolor>=1.1.0',
         'paramiko>=2.4.0',

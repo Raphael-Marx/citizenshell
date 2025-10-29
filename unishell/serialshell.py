@@ -11,10 +11,10 @@ from logging import CRITICAL
 
 class SerialShell(AbstractRemoteShell):
 
-    def __init__(self, port, baudrate=115200, bytesize=EIGHTBITS, parity=PARITY_NONE, username=None, password=None, 
-                 check_xc=False, check_err=False, wait=True, log_level=CRITICAL,**kwargs):
-        super(SerialShell, self).__init__(port, check_xc=check_xc, check_err=check_err, 
-                                          wait=wait, log_level=log_level, **kwargs)
+    def __init__(self, port: str, baudrate: int = 115200, bytesize: int = EIGHTBITS, parity: int = PARITY_NONE, username: str | None = None, password: str | None = None, 
+                 check_xc: bool = False, check_err: bool = False, wait: bool = True, log_level: int = CRITICAL, **kwargs):
+        super().__init__(port, check_xc=check_xc, check_err=check_err, 
+                         wait=wait, log_level=log_level, **kwargs)
         self._prompt = self.id() + '# '
         self._port = port
         self._baudrate = baudrate
@@ -24,8 +24,16 @@ class SerialShell(AbstractRemoteShell):
         self._password = password
         self.connect()
 
-    def do_connect(self):
-        self._serial = serial_for_url(self._port, baudrate=self._baudrate, parity=self._parity, bytesize=self._bytesize)
+    # TODO: investigate and improve timeout handling for connection opening
+    # The timeout parameter in serial_for_url only applies to read operations
+    # While this will trigger if the device is not responding, it does not
+    # respect the overall timeout for connection establishment and, if the
+    # device is simply not present, it will probably hang indefinitely.
+    def do_connect(self, timeout: float | None = None):
+        self._serial = serial_for_url(self._port, baudrate=self._baudrate, 
+                                      parity=self._parity,
+                                      bytesize=self._bytesize,
+                                      timeout=timeout)
         if self._username:
             self._write("\n" * 3)
             sleep(.1)

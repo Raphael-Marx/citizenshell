@@ -64,12 +64,32 @@ First you need a shell. For that you have several options:
     serialshell = Shell("serial://john:secretpassword@/dev/ttyUSB3", baudrate=115200)
     ```
 
+6. The shell connection can also have a timeout:
+
+    ```python
+    from unishell import SecureShell, SerialShell
+    serialshell = SerialShell(port="/dev/ttyUSB3", username="john",
+                              password="secretpassword",
+                              baudrate=115200, parity=PARITY_NONE, bytesize=EIGHTBITS,
+                              timeout=10)
+    ```
+
 ## Using a shell
 
 Once you have shell, any shell, you can call it directly and get the standart output:
 
 ```python
 assert shell("echo Hello World") == "Hello World"
+```
+
+You can also pass a timeout for running commands:
+
+```python
+    try:
+        shell("sleep 10", timeout=5)
+        assert False, "will not be reached"
+    except TimeoutError:
+        assert True, "timeout will trigger"
 ```
 
 You can also iterate over the standard output:
